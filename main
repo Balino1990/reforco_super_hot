@@ -1,0 +1,216 @@
+import json
+from datetime import datetime
+
+# Classe para Turmas
+class Turma:
+    def __init__(self, id, tipo, valor, horas=0, qtd_aulas=0):
+        self.id = id
+        self.tipo = tipo
+        self.valor = valor
+        self.horas = horas
+        self.qtd_aulas = qtd_aulas
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "tipo": self.tipo,
+            "valor": self.valor,
+            "horas": self.horas if self.tipo == "Workshop" else None,
+            "qtd_aulas": self.qtd_aulas
+        }
+
+# Classe para Aulas Extras
+class AulaExtra:
+    def __init__(self, id, tipo_extra, valor):
+        self.id = id
+        self.tipo_extra = tipo_extra
+        self.valor = valor
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "tipo_extra": self.tipo_extra,
+            "valor": self.valor
+        }
+
+# Classe para Feriados
+class Feriado:
+    def __init__(self, data, descricao):
+        self.data = data
+        self.descricao = descricao
+
+    def to_dict(self):
+        return {
+            "data": self.data,
+            "descricao": self.descricao
+        }
+
+# Classe para Alunos e Inscrições
+class Aluno:
+    def __init__(self, id, nome):
+        self.id = id
+        self.nome = nome
+        self.inscricoes = []
+
+    def add_inscricao(self, turma_id, valor_pago):
+        self.inscricoes.append({
+            "turma_id": turma_id,
+            "valor_pago": valor_pago
+        })
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "nome": self.nome,
+            "inscricoes": self.inscricoes
+        }
+
+# Classe para Descontos e Isenções
+class Desconto:
+    def __init__(self, id, tipo, valor):
+        self.id = id
+        self.tipo = tipo
+        self.valor = valor
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "tipo": self.tipo,
+            "valor": self.valor
+        }
+
+# Classe para Matérias
+class Materia:
+    def __init__(self, id, nome, qtd_aulas):
+        self.id = id
+        self.nome = nome
+        self.qtd_aulas = qtd_aulas
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "nome": self.nome,
+            "qtd_aulas": self.qtd_aulas
+        }
+
+# Classe para Relatório de Ganhos Mensais
+class RelatorioMensal:
+    def __init__(self, mes):
+        self.mes = mes
+        self.ganhos_totais = 0
+        self.detalhes_turmas = []
+        self.detalhes_alunos = []
+        self.curso_mais_aulas = None
+
+    def add_ganho_turma(self, turma_id, ganho):
+        self.detalhes_turmas.append({
+            "turma_id": turma_id,
+            "ganho": ganho
+        })
+        self.ganhos_totais += ganho
+
+    def add_ganho_aluno(self, aluno_id, total_pago):
+        self.detalhes_alunos.append({
+            "aluno_id": aluno_id,
+            "total_pago": total_pago
+        })
+
+    def set_curso_mais_aulas(self, turma_id, qtd_aulas):
+        self.curso_mais_aulas = {
+            "turma_id": turma_id,
+            "qtd_aulas": qtd_aulas
+        }
+
+    def to_dict(self):
+        return {
+            "mes": self.mes,
+            "ganhos_totais": self.ganhos_totais,
+            "detalhes_turmas": self.detalhes_turmas,
+            "detalhes_alunos": self.detalhes_alunos,
+            "curso_mais_aulas": self.curso_mais_aulas
+        }
+
+# Classe principal para agrupar todos os dados e gerar o JSON final
+class SistemaFinanceiro:
+    def __init__(self):
+        self.turmas = []
+        self.aulas_extras = []
+        self.feriados = []
+        self.alunos = []
+        self.descontos = []
+        self.materias = []
+        self.relatorio_mensal = None
+
+    def add_turma(self, turma):
+        self.turmas.append(turma)
+
+    def add_aula_extra(self, aula_extra):
+        self.aulas_extras.append(aula_extra)
+
+    def add_feriado(self, feriado):
+        self.feriados.append(feriado)
+
+    def add_aluno(self, aluno):
+        self.alunos.append(aluno)
+
+    def add_desconto(self, desconto):
+        self.descontos.append(desconto)
+
+    def add_materia(self, materia):
+        self.materias.append(materia)
+
+    def set_relatorio_mensal(self, relatorio):
+        self.relatorio_mensal = relatorio
+
+    def gerar_json(self):
+        return {
+            "turmas": [turma.to_dict() for turma in self.turmas],
+            "aulas_extras": [aula_extra.to_dict() for aula_extra in self.aulas_extras],
+            "feriados": [feriado.to_dict() for feriado in self.feriados],
+            "alunos": [aluno.to_dict() for aluno in self.alunos],
+            "descontos_e_isencoes": [desconto.to_dict() for desconto in self.descontos],
+            "materias": [materia.to_dict() for materia in self.materias],
+            "relatorio_mensal": self.relatorio_mensal.to_dict() if self.relatorio_mensal else None
+        }
+
+    def salvar_json(self, filename="dados_financeiros.json"):
+        with open(filename, "w") as file:
+            json.dump(self.gerar_json(), file, indent=2)
+
+# Exemplo de uso
+sistema = SistemaFinanceiro()
+
+# Adicionando uma turma
+turma1 = Turma(id="T1", tipo="Aulas de Curso", valor=1000, qtd_aulas=20)
+sistema.add_turma(turma1)
+
+# Adicionando uma aula extra
+aula_extra1 = AulaExtra(id="AE1", tipo_extra="Reposição", valor=150)
+sistema.add_aula_extra(aula_extra1)
+
+# Adicionando um feriado
+feriado1 = Feriado(data="2024-12-25", descricao="Natal")
+sistema.add_feriado(feriado1)
+
+# Adicionando um aluno e inscrição
+aluno1 = Aluno(id="A1", nome="João")
+aluno1.add_inscricao(turma_id="T1", valor_pago=500)
+sistema.add_aluno(aluno1)
+
+# Adicionando um desconto
+desconto1 = Desconto(id="D1", tipo="Percentual", valor=10)
+sistema.add_desconto(desconto1)
+
+# Adicionando uma matéria
+materia1 = Materia(id="M1", nome="Matemática", qtd_aulas=30)
+sistema.add_materia(materia1)
+
+# Criando relatório mensal
+relatorio = RelatorioMensal(mes="2024-11")
+relatorio.add_ganho_turma(turma_id="T1", ganho=1000)
+relatorio.add_ganho_aluno(aluno_id="A1", total_pago=500)
+relatorio.set_curso_mais_aulas(turma_id="T1", qtd_aulas=20)
+sistema.set_relatorio_mensal(relatorio)
+
+# Salvando tudo em um arquivo JSON
+sistema.salvar_json("dados_financeiros.json")
